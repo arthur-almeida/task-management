@@ -13,26 +13,21 @@ export class TasksService {
     @InjectRepository(Task) private readonly tasksRepository: Repository<Task>,
   ) {}
 
-  public getAllTasks(): TaskModel[] {
-    return this.tasks;
-  }
-
-  public getTasksWithFilters({
+  public async getTasks({
     status,
     search,
-  }: GetTasksFilterDto): TaskModel[] {
-    let tasks = this.getAllTasks();
+  }: GetTasksFilterDto): Promise<Task[]> {
+    const queryBuilder = this.tasksRepository.createQueryBuilder('task');
     if (status) {
-      tasks = tasks.filter((task) => task.status === status);
+      queryBuilder.andWhere('task.status = :status', { status });
     }
     if (search) {
-      tasks = tasks.filter((task) => {
-        if (task.title.includes(search) || task.description.includes(search)) {
-          return true;
-        }
-        return false;
-      });
+      queryBuilder.andWhere(
+        'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)',
+        { search: `%${search.toLowerCase()}%` },
+      );
     }
+    const tasks = await queryBuilder.getMany();
     return tasks;
   }
 
