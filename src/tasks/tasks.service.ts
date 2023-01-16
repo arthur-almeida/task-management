@@ -1,17 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Task, TaskStatus } from './task.model';
+import { Task as TaskModel, TaskStatus } from './task.model';
 import { randomUUID } from 'node:crypto';
 import { CreateTaskDto, GetTasksFilterDto } from './dtos';
 
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
+  private tasks: TaskModel[] = [];
 
-  public getAllTasks(): Task[] {
+  public getAllTasks(): TaskModel[] {
     return this.tasks;
   }
 
-  public getTasksWithFilters({ status, search }: GetTasksFilterDto): Task[] {
+  public getTasksWithFilters({
+    status,
+    search,
+  }: GetTasksFilterDto): TaskModel[] {
     let tasks = this.getAllTasks();
     if (status) {
       tasks = tasks.filter((task) => task.status === status);
@@ -27,7 +30,7 @@ export class TasksService {
     return tasks;
   }
 
-  public getTaskById(id: string): Task | undefined {
+  public getTaskById(id: string): TaskModel | undefined {
     const task = this.tasks.find((task) => task.id === id);
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
@@ -35,8 +38,8 @@ export class TasksService {
     return task;
   }
 
-  public createTask({ title, description }: CreateTaskDto): Task {
-    const task: Task = {
+  public createTask({ title, description }: CreateTaskDto): TaskModel {
+    const task: TaskModel = {
       id: randomUUID(),
       title,
       description,
@@ -51,7 +54,7 @@ export class TasksService {
     this.tasks = this.tasks.filter((task) => task.id !== taskToBeDeleted.id);
   }
 
-  public updateTaskStatus(id: string, status: TaskStatus): Task {
+  public updateTaskStatus(id: string, status: TaskStatus): TaskModel {
     const task = this.getTaskById(id);
     task.status = status;
     return task;
