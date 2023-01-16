@@ -2,10 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Task as TaskModel, TaskStatus } from './task.model';
 import { randomUUID } from 'node:crypto';
 import { CreateTaskDto, GetTasksFilterDto } from './dtos';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Task } from './task.entity';
 
 @Injectable()
 export class TasksService {
   private tasks: TaskModel[] = [];
+
+  constructor(
+    @InjectRepository(Task) private readonly tasksRepository: Repository<Task>,
+  ) {}
 
   public getAllTasks(): TaskModel[] {
     return this.tasks;
@@ -30,8 +37,10 @@ export class TasksService {
     return tasks;
   }
 
-  public getTaskById(id: string): TaskModel | undefined {
-    const task = this.tasks.find((task) => task.id === id);
+  public async getTaskById(id: string): Promise<Task> {
+    const task = await this.tasksRepository.findOneBy({
+      id,
+    });
     if (!task) {
       throw new NotFoundException(`Task with ID ${id} not found`);
     }
@@ -49,13 +58,13 @@ export class TasksService {
     return task;
   }
 
-  public deleteTask(id: string) {
-    const taskToBeDeleted = this.getTaskById(id);
+  public async deleteTask(id: string) {
+    const taskToBeDeleted = await this.getTaskById(id);
     this.tasks = this.tasks.filter((task) => task.id !== taskToBeDeleted.id);
   }
 
-  public updateTaskStatus(id: string, status: TaskStatus): TaskModel {
-    const task = this.getTaskById(id);
+  public async updateTaskStatus(id: string, status: TaskStatus): Promise<Task> {
+    const task = await this.getTaskById(id);
     task.status = status;
     return task;
   }
