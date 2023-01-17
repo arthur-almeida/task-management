@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/auth/user.entity';
 import { Repository } from 'typeorm';
 import { CreateTaskDto, GetTasksFilterDto } from './dtos';
 import { Task } from './task.entity';
@@ -39,14 +40,15 @@ export class TasksService {
     return task;
   }
 
-  public async createTask({
-    title,
-    description,
-  }: CreateTaskDto): Promise<Task> {
+  public async createTask(
+    { title, description }: CreateTaskDto,
+    user: User,
+  ): Promise<Task> {
     const task = this.tasksRepository.create({
       title,
       description,
       status: TaskStatus.OPEN,
+      user,
     });
     await this.tasksRepository.save(task);
     return task;
