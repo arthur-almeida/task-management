@@ -12,17 +12,18 @@ export class TasksService {
     @InjectRepository(Task) private readonly tasksRepository: Repository<Task>,
   ) {}
 
-  public async getTasks({
-    status,
-    search,
-  }: GetTasksFilterDto): Promise<Task[]> {
+  public async getTasks(
+    { status, search }: GetTasksFilterDto,
+    user: User,
+  ): Promise<Task[]> {
     const queryBuilder = this.tasksRepository.createQueryBuilder('task');
+    queryBuilder.where({ user });
     if (status) {
       queryBuilder.andWhere('task.status = :status', { status });
     }
     if (search) {
       queryBuilder.andWhere(
-        'LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search)',
+        '(LOWER(task.title) LIKE LOWER(:search) OR LOWER(task.description) LIKE LOWER(:search))',
         { search: `%${search.toLowerCase()}%` },
       );
     }
