@@ -29,8 +29,8 @@ export class TasksController {
   }
 
   @Get(':id')
-  public getTaskById(@Param('id') id: string) {
-    return this.tasksService.getTaskById(id);
+  public getTaskById(@Param('id') id: string, @GetUser() user: User) {
+    return this.tasksService.getTaskById(id, user);
   }
 
   @Post()
@@ -50,7 +50,8 @@ export class TasksController {
   public updateTaskStatus(
     @Param('id') id: string,
     @Body() { status }: UpdateTaskStatusDto,
+    @GetUser() user: User,
   ) {
-    return this.tasksService.updateTaskStatus(id, status);
+    return this.tasksService.updateTaskStatus(id, status, user);
   }
 }
